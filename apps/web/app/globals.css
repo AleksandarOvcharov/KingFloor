@@ -1,0 +1,482 @@
+@import 'tailwindcss';
+
+/* components/ui + components/shadcn moved to packages/ui — Tailwind's
+   automatic content detection only scans within this app, so the package's
+   class names need to be added explicitly or they'd get purged. */
+@source '../../../packages/ui/src';
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+    --color-success: hsl(var(--success));
+    --color-success-foreground: hsl(var(--success-foreground));
+
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 221.2 83.2% 53.3%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --success: 142 76% 36%;
+        --success-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 221.2 83.2% 53.3%;
+        --radius: 0.5rem;
+        --pin-color: #6366f1;
+    }
+
+    /*
+      Colorblind-safe / high-contrast mode (toggled via useAccessibility).
+      Red/green is the one pairing a large share of colorblind users can't
+      reliably distinguish, so success/error are remapped to a blue/amber
+      pairing instead, and borders are darkened to clear the WCAG 1.4.11
+      3:1 non-text contrast minimum (WebAIM).
+    */
+    .colorblind {
+        --success: 199 89% 42%;
+        --success-foreground: 210 40% 98%;
+        --destructive: 32 95% 44%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 215 25% 55%;
+        --input: 215 25% 55%;
+    }
+
+    .dark {
+        --background: 222.2 84% 4.9%;
+        --foreground: 210 40% 98%;
+        --card: 222.2 84% 4.9%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222.2 84% 4.9%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 217.2 91.2% 59.8%;
+        --primary-foreground: 222.2 47.4% 11.2%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 217.2 32.6% 17.5%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --success: 142 70% 45%;
+        --success-foreground: 222.2 47.4% 11.2%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 224.3 76.3% 48%;
+        --pin-color: #6366f1;
+    }
+
+    .dark.colorblind {
+        --success: 199 89% 60%;
+        --success-foreground: 222.2 47.4% 11.2%;
+        --destructive: 32 95% 58%;
+        --destructive-foreground: 222.2 47.4% 11.2%;
+        --border: 215 20% 45%;
+        --input: 215 20% 45%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    html,
+    body {
+        @apply bg-background text-foreground;
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    /* Consistent keyboard focus outlines — visible only on keyboard navigation */
+    :focus-visible {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Remove default focus outline for mouse/touch users */
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+}
+
+/* Chat animations */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+    animation: slide-up 0.25s ease-out;
+}
+
+@keyframes top-loader {
+    0% {
+        width: 0;
+        margin-left: 0;
+    }
+    50% {
+        width: 70%;
+        margin-left: 0;
+    }
+    100% {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+.animate-top-loader {
+    animation: top-loader 1.5s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Leaflet & OpenStreetMap Custom Styles
+   ========================================================================== */
+
+.custom-leaflet-div-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-osm-pin {
+    position: relative;
+    width: 32px;
+    height: 42px;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: 16px 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-osm-pin:hover {
+    transform: scale(1.18) translateY(-4px);
+    z-index: 1000 !important;
+}
+
+.custom-osm-pin.map-pin-selected {
+    transform: scale(1.22) translateY(-6px);
+    z-index: 1000 !important;
+}
+
+.custom-osm-pin .pin-marker {
+    position: relative;
+    width: 32px;
+    height: 42px;
+}
+
+.custom-osm-pin .pin-svg {
+    width: 32px;
+    height: 42px;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+}
+
+.custom-osm-pin .pin-inner-content {
+    position: absolute;
+    top: 4px;
+    left: 5px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.custom-osm-pin .map-pin-emoji {
+    font-size: 12px;
+    line-height: 1;
+}
+
+.custom-osm-pin .map-pin-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: var(--pin-color, #6366f1);
+}
+
+.custom-osm-pin .pin-pulse {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--pin-color, #6366f1);
+    opacity: 0.4;
+    animation: pin-pulse-anim 2s infinite ease-out;
+    pointer-events: none;
+}
+
+@keyframes pin-pulse-anim {
+    0% {
+        transform: translateX(-50%) scale(0.6);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(-50%) scale(2.8);
+        opacity: 0;
+    }
+}
+
+.custom-osm-pin .pin-badge-label {
+    position: absolute;
+    bottom: 44px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Custom Popup Card */
+.custom-osm-popup-wrapper .leaflet-popup-content-wrapper {
+    background: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.custom-osm-popup-wrapper .leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+    width: 280px !important;
+}
+
+.custom-osm-popup-wrapper .leaflet-popup-tip {
+    background: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    box-shadow: none !important;
+}
+
+.custom-osm-popup-wrapper .leaflet-popup-close-button {
+    top: 8px !important;
+    right: 8px !important;
+    color: hsl(var(--muted-foreground)) !important;
+    padding: 4px !important;
+    z-index: 20;
+    font: 16px/14px Tahoma, Verdana, sans-serif !important;
+}
+
+.custom-osm-popup-wrapper .leaflet-popup-close-button:hover {
+    color: hsl(var(--foreground)) !important;
+}
+
+.osm-popup-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 0.75rem;
+}
+
+.osm-popup-img-wrap {
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    position: relative;
+    background: hsl(var(--muted));
+}
+
+.osm-popup-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.osm-popup-body {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.osm-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.osm-popup-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.osm-popup-badge-secondary {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+}
+
+.osm-popup-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin: 0;
+}
+
+.osm-popup-desc {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.osm-popup-meta {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    font-family: monospace;
+}
+
+.osm-popup-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.osm-popup-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.osm-popup-btn:hover {
+    opacity: 0.9;
+}
+
+.osm-popup-btn-primary {
+    color: #ffffff;
+}
+
+.osm-popup-btn-outline {
+    background: transparent;
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+}
+
+.osm-popup-btn-outline:hover {
+    background: hsl(var(--muted));
+}
+
+.osm-popup-btn-ghost {
+    background: transparent;
+    color: hsl(var(--muted-foreground));
+}
+
+.osm-popup-btn-ghost:hover {
+    color: hsl(var(--foreground));
+}

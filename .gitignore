@@ -1,0 +1,66 @@
+# claude
+/.claude
+
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# dependencies (no leading slash: matches at every workspace depth)
+node_modules
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
+
+# turborepo
+.turbo/
+
+# next.js
+.next/
+out/
+
+# production
+build
+dist
+
+# expo / react native
+.expo/
+.expo-shared/
+
+# misc
+.DS_Store
+*.pem
+lc.exe
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# ides
+.idea
+.vscode
+
+reference
+
+/docs-scraper

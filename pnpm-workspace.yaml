@@ -1,0 +1,14 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# apps/web and apps/mobile (Expo) end up with two different @types/react
+# versions after hoisting; TypeScript treats their `Key` symbol as nominally
+# different and breaks `apps/web`'s type-check unless pinned to one version.
+overrides:
+  '@types/react': '~19.2.4'
+
+allowBuilds:
+  protobufjs: false
+  sharp: false
+  unrs-resolver: false
