@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
+import { LogOut } from 'lucide-react-native';
 import { useSession } from '../../hooks/useSession';
 import { useProfile } from '../../hooks/useProfile';
 import { useTheme } from '../../hooks/useTheme';
@@ -28,6 +29,7 @@ export default function SettingsScreen() {
   const [github, setGithub] = useState('');
   const [savingField, setSavingField] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -70,6 +72,12 @@ export default function SettingsScreen() {
   const handleToggleVisibility = async (value: boolean) => {
     const result = await updateVisibility(value);
     if (!result.success) Alert.alert(t.status.error, result.error ?? t.settings.visibilityUpdateFailed);
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    setSigningOut(false);
   };
 
   const handleDeleteAccount = () => {
@@ -135,6 +143,11 @@ export default function SettingsScreen() {
               <Row label={t.settings.authProviderLabel} value={authProvider} colors={colors} />
               <Separator />
               <Row label={t.settings.memberSinceLabel} value={memberSince} colors={colors} />
+              <Separator />
+              <Button variant="outline" onPress={handleSignOut} loading={signingOut} style={styles.signOutButton}>
+                <LogOut color={colors.foreground} size={16} />
+                <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '600' }}>{t.common.logout}</Text>
+              </Button>
             </CardContent>
           </Card>
 
@@ -278,6 +291,7 @@ function createStyles(colors: ColorTokens) {
     title: { fontSize: 18, fontWeight: '600', color: colors.foreground, marginBottom: 16 },
     signInButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 32 },
     signInButtonText: { color: colors.primaryForeground, fontSize: 15, fontWeight: '600' },
+    signOutButton: { marginTop: 4, alignSelf: 'flex-start' },
     switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     switchLabel: { fontSize: 14, fontWeight: '500', color: colors.foreground },
     switchDescription: { fontSize: 12, color: colors.mutedForeground, marginTop: 2 },

@@ -12,6 +12,7 @@ import {
 import { router } from 'expo-router';
 import { loginSchema } from '@workspace/shared';
 import { supabase } from '../lib/supabase';
+import { signInWithOAuth, type OAuthProvider } from '../lib/oauth';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../hooks/useI18n';
 import type { ColorTokens } from '../lib/theme';
@@ -24,6 +25,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
 
   const handleSignIn = async () => {
     setError(null);
@@ -48,6 +50,23 @@ export default function SignInScreen() {
     router.back();
   };
 
+  const handleOAuth = async (provider: OAuthProvider) => {
+    if (loading || oauthLoading) return;
+    setError(null);
+    setOauthLoading(provider);
+    const { error: oauthError } = await signInWithOAuth(provider);
+    setOauthLoading(null);
+    if (oauthError) {
+      setError(oauthError);
+      return;
+    }
+    // setSession() inside signInWithOAuth fires onAuthStateChange itself;
+    // if the user dismissed the browser instead, there's no session yet
+    // and we simply stay on this screen.
+    const { data } = await supabase.auth.getSession();
+    if (data.session) router.back();
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -61,7 +80,7 @@ export default function SignInScreen() {
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
-        editable={!loading}
+        editable={!loading && !oauthLoading}
         placeholderTextColor={colors.mutedForeground}
       />
 
@@ -72,19 +91,50 @@ export default function SignInScreen() {
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="password"
-        editable={!loading}
+        editable={!loading && !oauthLoading}
         placeholderTextColor={colors.mutedForeground}
       />
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      <Pressable style={styles.button} onPress={handleSignIn} disabled={loading}>
+      <Pressable style={styles.button} onPress={handleSignIn} disabled={loading || !!oauthLoading}>
         {loading ? (
           <ActivityIndicator color={colors.primaryForeground} />
         ) : (
           <Text style={styles.buttonText}>{t.common.signIn}</Text>
         )}
       </Pressable>
+
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>{t.auth.orContinueWith}</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <View style={styles.oauthRow}>
+        <Pressable
+          style={styles.oauthButton}
+          onPress={() => handleOAuth('google')}
+          disabled={loading || !!oauthLoading}
+        >
+          {oauthLoading === 'google' ? (
+            <ActivityIndicator color={colors.foreground} size="small" />
+          ) : (
+            <Text style={styles.oauthButtonText}>Google</Text>
+          )}
+        </Pressable>
+        <Pressable
+          style={styles.oauthButton}
+          onPress={() => handleOAuth('github')}
+          disabled={loading || !!oauthLoading}
+        >
+          {oauthLoading === 'github' ? (
+            <ActivityIndicator color={colors.foreground} size="small" />
+          ) : (
+            <Text style={styles.oauthButtonText}>GitHub</Text>
+          )}
+        </Pressable>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -129,6 +179,41 @@ function createStyles(colors: ColorTokens) {
     buttonText: {
       color: colors.primaryForeground,
       fontSize: 16,
+      fontWeight: '600',
+    },
+    dividerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 24,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      fontSize: 11,
+      textTransform: 'uppercase',
+      color: colors.mutedForeground,
+    },
+    oauthRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 16,
+    },
+    oauthButton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+      backgroundColor: colors.card,
+    },
+    oauthButtonText: {
+      color: colors.foreground,
+      fontSize: 15,
       fontWeight: '600',
     },
   });

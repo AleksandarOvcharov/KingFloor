@@ -21,8 +21,8 @@ app/
 ├── _layout.tsx         # Root Stack — wraps everything in ThemeProvider + I18nProvider
 ├── sign-in.tsx          # Modal screen
 └── (tabs)/
-    ├── _layout.tsx      # Tab bar: Home, AI Chat, Dashboard, Map, Profile, Settings
-    ├── index.tsx, ai.tsx, dashboard.tsx, map.tsx, profile.tsx, settings.tsx
+    ├── _layout.tsx      # Tab bar: Home (Building), Settings — mirrors apps/web's real nav, not the old template's
+    ├── index.tsx, settings.tsx
 ```
 
 ## Expo SDK is pinned to 57 — do not bump without checking first
@@ -31,7 +31,7 @@ It was downgraded from 58 to 57 once already because the tester's installed **Ex
 
 ## Reusing a web component you can't port natively
 
-If a feature needs a web component that's genuinely infeasible to reimplement with RN primitives (Leaflet maps, anything DOM/CSS-dependent), don't port it — embed the real thing. Add a chrome-free route under `apps/web/app/embed/*` rendering the actual component, then load it here in a `react-native-webview` `WebView`. See `app/(tabs)/map.tsx` + `apps/web/app/embed/map/page.tsx` as the reference, including how the embedded page's theme is synced via a `?theme=` query param — a WebView is a separate browser context with its own storage, it has no idea what theme the native app is in otherwise.
+If a feature needs a web component that's genuinely infeasible to reimplement with RN primitives (Leaflet maps, anything DOM/CSS-dependent), don't port it — embed the real thing. Add a chrome-free route under `apps/web/app/embed/*` rendering the actual component, then load it here in an `expo-web-browser`/`react-native-webview` view, syncing theme via a `?theme=` query param — a WebView is a separate browser context with its own storage, it has no idea what theme the native app is in otherwise. (No current screen needs this — the template's old map-embed tab was removed once `apps/web` dropped its own map page — but keep this pattern in mind before reimplementing something DOM-dependent from scratch.)
 
 `react-native-maps` is NOT an option here: it needs a custom dev client (`expo prebuild` + native build), and this project's whole workflow is pinned to plain Expo Go.
 

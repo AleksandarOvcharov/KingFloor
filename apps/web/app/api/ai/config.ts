@@ -17,8 +17,8 @@
 // ============================================================================
 
 // Project identity — update these for your website
-const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME || 'Hackathon Starter'
-const PROJECT_DESCRIPTION = 'A modern web application built with Next.js, React, and Supabase'
+const PROJECT_NAME = process.env.NEXT_PUBLIC_PROJECT_NAME || 'KingFloor'
+const PROJECT_DESCRIPTION = 'a platform for managing a building\'s shared ownership (етажна собственост) — fees, announcements, votes, and maintenance'
 
 // Personality — how should the AI sound?
 const PERSONALITY = 'friendly, concise, and helpful'
@@ -26,11 +26,12 @@ const PERSONALITY = 'friendly, concise, and helpful'
 // Features the AI knows about — update when you add/remove features
 const FEATURES = [
     'User authentication (email/password, Google OAuth, and GitHub OAuth)',
-    'User profiles with avatars and bios',
-    'AI-powered chat assistant',
-    'Dashboard with analytics and usage statistics',
-    'Dark mode and theme customization',
-    'Settings page for account management',
+    'Building setup: apartments (units)',
+    'Monthly fees per apartment, fixed or per m², with payment tracking',
+    'Building-wide announcements, with pinning',
+    'Voting on building decisions — one vote per apartment',
+    'Maintenance issue reports with status tracking and comments',
+    'Two roles: building manager (admin) and resident',
 ]
 
 // Rules — add any domain-specific behavior or restrictions
@@ -38,18 +39,19 @@ const RULES = [
     'Answer questions clearly and concisely',
     'When asked about features, reference the actual capabilities of the platform',
     'Use markdown formatting for structured responses',
-    'Use LaTeX ($..$ for inline, $$...$$ for blocks) when writing math',
     'If asked something outside your knowledge, be honest about it',
     'Do not make up features or capabilities that do not exist',
 ]
 
 // Pages the AI can reference — helps it give accurate navigation guidance
 const PAGES = [
-    {path: '/dashboard', description: 'Analytics dashboard with usage stats and charts'},
-    {path: '/ai', description: 'AI chat assistant'},
+    {path: '/building', description: 'Building overview — fees, issues, and votes at a glance'},
+    {path: '/building/units', description: 'Manage apartments and residents (admin)'},
+    {path: '/building/fees', description: 'Monthly fees and payment status'},
+    {path: '/building/announcements', description: 'Building announcements'},
+    {path: '/building/polls', description: 'Voting on building decisions'},
+    {path: '/building/issues', description: 'Maintenance issue reports'},
     {path: '/settings', description: 'Profile and account settings'},
-    {path: '/features', description: 'Overview of platform capabilities'},
-    {path: '/about', description: 'About the project'},
 ]
 
 // ---------------------------------------------------------------------------

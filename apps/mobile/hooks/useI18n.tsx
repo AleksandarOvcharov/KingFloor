@@ -4,7 +4,7 @@ import { dictionaries, isLocale, LOCALE_COOKIE, tFormat, type Dictionary, type L
 
 export { tFormat };
 
-const DEFAULT_LOCALE: Locale = 'en';
+const DEFAULT_LOCALE: Locale = 'bg';
 
 interface I18nContextValue {
   locale: Locale;

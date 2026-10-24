@@ -8,7 +8,7 @@ import {NextRequest, NextResponse} from 'next/server'
  * in addition to the client-side useAuth() redirect hooks.
  */
 
-const PROTECTED_PREFIXES = ['/dashboard', '/settings', '/ai']
+const PROTECTED_PREFIXES = ['/building', '/settings']
 
 export function proxy(request: NextRequest) {
     const {pathname} = request.nextUrl
@@ -34,8 +34,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/dashboard/:path*',
+        '/building/:path*',
         '/settings/:path*',
-        '/ai/:path*',
     ],
 }

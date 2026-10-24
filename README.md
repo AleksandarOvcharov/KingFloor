@@ -74,3 +74,4 @@ pnpm type-check   # TypeScript check across all 4 packages
 - **[docs/file-upload.md](docs/file-upload.md)** — file upload system guide (web; not yet ported to mobile)
 - **[docs/utils.md](docs/utils.md)** — utility functions (geocoding, notifications, search)
 - **[docs/CHANGELOG.md](docs/CHANGELOG.md)** — version history
+- **[docs/kingfloor.md](docs/kingfloor.md)** — the KingFloor product itself (etажна собственост domain): buildings/units/fees/voting/maintenance, built on top of everything above

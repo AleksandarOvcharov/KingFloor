@@ -14,7 +14,7 @@ export default function AuthCallbackPage() {
     useEffect(() => {
         if (!loading) {
             if (user) {
-                router.replace('/dashboard')
+                router.replace('/building')
             } else {
                 router.replace('/login?error=auth-callback-error')
             }

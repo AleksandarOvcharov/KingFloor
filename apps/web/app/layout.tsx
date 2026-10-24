@@ -14,8 +14,8 @@ import './globals.css'
 const inter = Inter({subsets: ['latin']})
 
 export const metadata: Metadata = {
-    title: 'Hackathon Startup Template',
-    description: 'A minimal Next.js template for hackathons with Supabase auth',
+    title: 'KingFloor',
+    description: 'Платформа за управление на етажна собственост',
 }
 
 // Theme and colorblind-mode still read localStorage (no SSR source for
@@ -31,7 +31,7 @@ export default async function RootLayout({
 }) {
     const cookieStore = await cookies()
     const localeCookie = cookieStore.get(LOCALE_COOKIE)?.value
-    const locale = isLocale(localeCookie) ? localeCookie : 'en'
+    const locale = isLocale(localeCookie) ? localeCookie : 'bg'
 
     return (
         <html lang={locale} suppressHydrationWarning>

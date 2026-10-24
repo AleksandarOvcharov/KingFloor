@@ -12,7 +12,7 @@ An Expo Router app (SDK 57) that shares one Supabase backend and one deployed Ne
 - **Pure data/logic** — `@workspace/shared`'s types, Zod schemas, and the entire i18n dictionary.
 - **Design tokens** — mobile's color palette (`lib/theme.ts`) is hand-converted from web's HSL `--variables`, so both apps render the same colors even though the components rendering them are different code.
 - **API shape** — mobile's hooks call the same endpoints web's hooks call, with the same request/response shapes, just through a different HTTP client (`apiFetch` vs. relative `fetch`).
-- **Literal DOM content, when truly needed** — the one case where mobile embeds the *actual* web component live inside a `WebView` instead of reimplementing it (the map — see below).
+- **Literal DOM content, when truly needed** — mobile can still embed the *actual* web component live inside a `WebView` instead of reimplementing it, when a feature is genuinely infeasible to build natively (no current screen does this — the template's old map-embed tab was removed once `apps/web` dropped its own map/AI/analytics template pages).
 
 ## Directory map
 
@@ -20,36 +20,37 @@ An Expo Router app (SDK 57) that shares one Supabase backend and one deployed Ne
 apps/mobile/
 ├── app/
 │   ├── _layout.tsx              # Root Stack. Wraps everything: SafeAreaProvider > I18nProvider > ThemeProvider
-│   ├── sign-in.tsx               # Modal screen, email/password via loginSchema (@workspace/shared)
+│   ├── sign-in.tsx               # Modal screen, email/password + Google/GitHub OAuth (lib/oauth.ts)
 │   └── (tabs)/
 │       ├── _layout.tsx           # Tab bar + shared header (ThemeToggle, LanguageToggle in headerRight)
-│       ├── index.tsx             # Home (placeholder — "Welcome" / "What would you like to do today?")
-│       ├── ai.tsx                # AI Chat — calls /api/ai/chat
-│       ├── dashboard.tsx         # Dashboard — calls /api/analytics/stats
-│       ├── map.tsx               # Map — WebView embedding apps/web's /embed/map
-│       ├── profile.tsx           # Identity + sign in/out (simple; Settings has the real profile editor)
-│       └── settings.tsx          # Account details, username, bio, extended info, visibility, danger zone
+│       ├── index.tsx             # Home = the Building screen: join flow, fees, announcements, votes
+│       └── settings.tsx          # Account details + sign out, username, bio, extended info, visibility, danger zone
 ├── components/
 │   ├── ui/                       # Native component library — see "Component library" below
 │   │   ├── Button.tsx, Card.tsx, Badge.tsx, Input.tsx, Label.tsx, Separator.tsx,
 │   │   │   Switch.tsx, Skeleton.tsx, Progress.tsx, Avatar.tsx, index.ts
-│   ├── dashboard/
-│   │   ├── StatCard.tsx, ActivityChart.tsx (react-native-svg bars), ActivityFeed.tsx
 │   ├── ThemeToggle.tsx           # Sun/Moon icon button, mirrors web's ThemeToggle
 │   └── LanguageToggle.tsx        # Tap-to-cycle flag+code (web uses a dropdown; only 2 locales here)
 ├── hooks/
 │   ├── useSession.ts             # Native Supabase session, onAuthStateChange-synced
 │   ├── useProfile.ts             # Ports apps/web's useProfile() logic (same /api/profile PUT shape)
-│   ├── useDashboardStats.ts      # Ports apps/web's useAnalytics() logic (same /api/analytics/stats shape)
+│   ├── useBuilding.ts            # GET /api/building — current user's membership, or null
+│   ├── useJoinBuilding.ts        # GET /api/building/lookup + POST /api/building/join (resident join only)
+│   ├── useFees.ts                # GET /api/building/fees — read-only on mobile
+│   ├── useAnnouncements.ts       # GET /api/building/announcements — read-only on mobile
+│   ├── usePolls.ts               # GET /api/building/polls + POST .../vote — the one write action on mobile
 │   ├── useTheme.tsx              # Context: { theme, colors, toggle } — AsyncStorage-backed
 │   └── useI18n.tsx               # Context: { t, locale, setLocale, tFormat } — AsyncStorage-backed
 ├── lib/
 │   ├── supabase.ts               # Native Supabase client (LargeSecureStore-backed)
 │   ├── supabase-storage.ts       # Chunked expo-secure-store adapter — see "Gotchas" below
+│   ├── oauth.ts                  # signInWithOAuth() — expo-web-browser auth session + setSession()
 │   ├── api-client.ts             # apiFetch(path, opts) — Bearer token + EXPO_PUBLIC_API_URL prefix
 │   └── theme.ts                  # ColorTokens type + light/dark palettes (hex, converted from web's HSL)
 └── package.json                  # Expo SDK 57 (pinned — see "Gotchas")
 ```
+
+Mobile deliberately has only two tabs, mirroring `apps/web`'s own nav: the website's header has exactly one real link (`/building`) plus a user-menu dropdown (Building / Settings / Logout) — there's no separate "Dashboard"/"AI"/"Map" page there either, those were hackathon-template leftovers already deleted on web. The old mobile tabs with the same names were orphans with zero web equivalent and have been removed rather than redesigned.
 
 ## Component library (`components/ui/`)
 
@@ -89,17 +90,16 @@ All of them read colors from `useTheme()`'s `ColorTokens`, never a hardcoded hex
 
 **Not ported**: `uploadAvatar`. Web's version is `File`-based (browser file input); mobile would need `expo-image-picker` (not currently a dependency) to pick an image and convert it to a base64/blob payload. This is a deliberate, acknowledged gap — the same category as "file upload" being explicitly deferred for mobile generally, not an oversight.
 
-## Map tab — the WebView-embed pattern
+A "Sign out" button lives in Settings' Account card (not in the Building tab) — mobile has no header user-menu dropdown the way web does, so this is where that action had to land instead.
 
-`app/(tabs)/map.tsx` is a `react-native-webview` `WebView` pointed at `${EXPO_PUBLIC_API_URL}/embed/map` — a chrome-free Next.js route (`apps/web/app/embed/map/page.tsx`) that renders the real `<MapView/>` component full-screen, no `<Header/>`, no auth required (the map has no user data).
+## OAuth (Google/GitHub) sign-in
 
-This is the reference implementation for "mobile needs a web feature that's genuinely infeasible to reimplement natively": `react-native-maps` would need a custom dev client (not Expo Go, which this project's workflow is pinned to), and reimplementing Leaflet with RN primitives would mean maintaining two independent map engines. A `WebView` is an actual browser, so it's the one way to run the *real* component on-device.
+`lib/oauth.ts`'s `signInWithOAuth(provider)` is the native equivalent of `apps/web/hooks/useAuth.ts`'s `signInWithGoogle`/`signInWithGitHub`, but a native app has no server to receive Supabase's HTTP redirect, so the flow is different in shape even though it ends at the same providers:
+1. Call `supabase.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: true } })` to get the provider's consent URL without letting supabase-js try to navigate anywhere itself.
+2. Open that URL with `expo-web-browser`'s `openAuthSessionAsync`, which runs an in-app browser tab (`ASWebAuthenticationSession`/Custom Tabs) and resolves once it's redirected back to this app's own `hacktemplate://auth/callback` deep link (`redirectTo`, built with `expo-linking`'s `createURL`).
+3. Pull `access_token`/`refresh_token` out of that returned URL with `expo-auth-session`'s `QueryParams.getQueryParams`, and hand them to `supabase.auth.setSession()` directly — the mobile Supabase client has `detectSessionInUrl: false`, so nothing parses the redirect automatically the way a browser tab would.
 
-**Theme sync is the non-obvious part.** The embedded page is a separate browser context with its own fresh `localStorage` — it has no idea what theme the native app is in. The fix:
-1. `map.tsx` passes the mobile app's current theme as `?theme=dark|light` in the embed URL, and remounts the `WebView` (`key={theme}`) when it changes, so toggling theme while on the Map tab actually reloads with the new one.
-2. `embed/map/page.tsx` reads that param **server-side** (it's an `async` page component receiving `searchParams`) and applies the `.dark` class to `<html>` via an early inline `<script>` — not to a wrapper `<div>`. That distinction matters: Tailwind v4's `--color-background: hsl(var(--background))` token resolves its `var(--background)` reference once, inherited from `:root`; overriding `--background` on a descendant element doesn't retroactively change an already-inherited `--color-background` value. The class has to land on the actual root for the override to take effect. (This was a real bug, fixed once — see `docs/CHANGELOG.md`.)
-
-**Known gap**: Android's WebView won't surface the GPS "my location" permission prompt without also wiring `onGeolocationPermissionsShowPrompt` + a location permission in the native config — left unaddressed since it degrades to the same "denied" state the web app already handles gracefully, and search/click-to-reverse-geocode work regardless of GPS.
+**Requires a one-time Supabase Dashboard change, not just code**: the redirect URL `hacktemplate://auth/callback` must be added to Authentication → URL Configuration → Redirect URLs, or step 2 above will complete with an error instead of a session. The OAuth providers themselves don't need separate native setup — this reuses the same Google/GitHub apps already enabled for `apps/web`, since it's Supabase's hosted OAuth flow, not a native provider SDK.
 
 ## Gotchas
 
@@ -107,7 +107,6 @@ This is the reference implementation for "mobile needs a web feature that's genu
 - **Expo SDK is pinned to 57, not latest, on purpose** — see `apps/mobile/AGENTS.md`. Don't bump it without confirming the tester's installed Expo Go app supports the new version first.
 - **`@types/react` is pinned workspace-wide** via the root `pnpm-workspace.yaml`'s `overrides` (currently `~19.2.4`, matching SDK 57). Bumping the Expo SDK without also updating this override breaks `apps/web`'s type-check with a confusing "Key symbol" mismatch in shadcn components (`cmdk`, `sonner`, `input-otp`).
 - **`.npmrc` has `node-linker=hoisted`** — required for Metro to resolve packages correctly in this pnpm workspace. Don't remove it without re-verifying `expo export` still bundles cleanly.
-- **`react-native-webview` works in Expo Go; `react-native-maps` does not** (needs a custom dev client / `expo prebuild`). This is why the map is a `WebView` embed, not a native map.
 - **This sandbox's `pnpm` binary may be a shebang-less shell shim** that breaks when Turborepo tries to spawn it directly (`/usr/bin/pnpm`). Sandbox-specific, not a project issue — see `apps/mobile/AGENTS.md` for the workaround.
 
 ## Verifying a change actually works
@@ -118,12 +117,11 @@ cd apps/mobile
 pnpm exec expo export --platform android
 rm -rf dist .expo   # clean up afterward — not meant to be committed
 ```
-Run this (plus `pnpm type-check`/`pnpm lint` from the repo root) before considering any mobile change done. For anything touching the `/embed/map` route specifically, also check it from the web side with a real built page (Playwright or manual) — the dark-mode bug above would not have been caught by `tsc` or a bundle check, only by actually looking at computed styles in a browser.
+Run this (plus `pnpm type-check`/`pnpm lint` from the repo root) before considering any mobile change done.
 
 ## What's explicitly not built yet (don't assume it exists)
 
 - Avatar upload (needs `expo-image-picker`).
-- AI chat image attachments / voice input (web has both; mobile's AI tab is text-only).
-- A native component demo/showcase screen (web's `/features` page has one; mobile doesn't — the component library is used in-place in Settings/Dashboard instead).
+- Admin-only building actions on mobile: marking a fee paid, generating fees, posting/editing announcements, creating/closing polls, maintenance issues & comments, units/expenses management, building settings (IBAN). All of these stay web-only for now — mobile is read-only on `/api/building/*` except for casting a poll vote (see `usePolls.ts`). Creating a building (the admin "I manage this building" setup flow) is also web-only; mobile only ever joins as a resident via invite code.
 - EAS build/submit configuration — distribution is via Expo Go only so far.
-- A public profile view, or any i18n coverage of web's marketing/landing-page content (mobile's Home tab is a placeholder, not a port of web's landing page).
+- A public profile view, or any i18n coverage of web's marketing/landing-page content.

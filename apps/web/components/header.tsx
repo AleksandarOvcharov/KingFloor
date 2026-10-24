@@ -15,20 +15,16 @@ import {Avatar, AvatarFallback, AvatarImage} from '@workspace/ui/ui/avatar'
 import {useI18n} from '@/lib/i18n/provider'
 import {
     Menu,
-    Rocket,
     X,
     LogIn,
     UserPlus,
-    LayoutDashboard,
-    Sparkles,
-    Layers,
-    Info,
     Settings,
     LogOut,
+    Building2,
 } from 'lucide-react'
 
 export function Header() {
-    const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME || 'Hackathon Template'
+    const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME || 'KingFloor'
     const {user, logout} = useAuth()
     const {profile} = useProfile(user)
     const {t} = useI18n()
@@ -74,12 +70,7 @@ export function Header() {
     const initials = username.substring(0, 2).toUpperCase()
 
     const navLinks = useMemo(
-        () => [
-            ...(user ? [{label: t.common.dashboard, href: '/dashboard', icon: LayoutDashboard}] : []),
-            {label: t.nav.features, href: '/features', icon: Layers},
-            {label: t.nav.ai, href: '/ai', icon: Sparkles},
-            {label: t.nav.about, href: '/about', icon: Info},
-        ],
+        () => (user ? [{label: t.nav.building, href: '/building', icon: Building2}] : []),
         [user, t],
     )
 
@@ -92,7 +83,7 @@ export function Header() {
                     className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-90 shrink"
                     aria-label={`${projectName} — Home`}
                 >
-                    <Rocket className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" aria-hidden="true" />
+                    <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" aria-hidden="true" />
                     <span className="font-bold text-base sm:text-lg tracking-tight truncate">
                         {projectName}
                     </span>

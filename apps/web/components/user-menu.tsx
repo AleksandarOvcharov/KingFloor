@@ -16,7 +16,7 @@ import {
 } from '@workspace/ui/ui/dropdown-menu'
 import {Avatar, AvatarFallback, AvatarImage} from '@workspace/ui/ui/avatar'
 import {useI18n} from '@/lib/i18n/provider'
-import {LogOut, Settings, User} from 'lucide-react'
+import {Building2, LogOut, Settings} from 'lucide-react'
 
 export function UserMenu({hideWhenLoggedOut = false}: {hideWhenLoggedOut?: boolean}) {
     const {user, logout} = useAuth()
@@ -79,9 +79,9 @@ export function UserMenu({hideWhenLoggedOut = false}: {hideWhenLoggedOut?: boole
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator/>
                 <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4"/>
-                        <span>{t.common.dashboard}</span>
+                    <Link href="/building" className="cursor-pointer">
+                        <Building2 className="mr-2 h-4 w-4"/>
+                        <span>{t.nav.building}</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

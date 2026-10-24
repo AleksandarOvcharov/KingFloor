@@ -5,7 +5,7 @@ import {dictionaries, isLocale, LOCALE_COOKIE, tFormat, type Dictionary, type Lo
 
 export {tFormat}
 
-const DEFAULT_LOCALE: Locale = 'en'
+const DEFAULT_LOCALE: Locale = 'bg'
 
 function writeCookie(name: string, value: string) {
     if (typeof document === 'undefined') return

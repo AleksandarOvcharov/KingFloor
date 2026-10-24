@@ -1,6 +1,7 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {supabase} from '@/lib/supabase/client'
 import type {User} from '@supabase/supabase-js'
+import {clearAllBuildingCaches} from '@/lib/building/cache'
 
 const syncAuthCookie = (token?: string | null) => {
     if (typeof document === 'undefined') return
@@ -27,6 +28,28 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
 
+    // Supabase refreshes the access token whenever the tab regains focus
+    // (alt-tab, switching windows), which fires onAuthStateChange with a
+    // freshly-deserialized — but logically identical — user object. Handing
+    // out a new object reference for the "same" user makes every downstream
+    // useEffect/useCallback keyed on `user` (useBuilding, etc.) think the
+    // user changed and re-fetch everything from scratch, flashing skeletons
+    // all over the page for no reason. Keep the previous reference whenever
+    // the user id didn't actually change, so unrelated hooks don't see a
+    // "new" user and refetch on every tab-focus token refresh.
+    const lastUserIdRef = useRef<string | null>(null)
+    const applyUser = (next: User | null) => {
+        const nextId = next?.id ?? null
+        // A *real* transition between two different known users (including
+        // sign-out) — not just the first load of this tab — means any
+        // building data cached from the previous user no longer applies.
+        if (lastUserIdRef.current !== null && lastUserIdRef.current !== nextId) {
+            clearAllBuildingCaches()
+        }
+        lastUserIdRef.current = nextId
+        setUser((prev) => (prev?.id === nextId ? prev : next))
+    }
+
     useEffect(() => {
         let isMounted = true
 
@@ -37,15 +60,15 @@ export function useAuth() {
                 if (!isMounted) return
 
                 if (error || !session) {
-                    setUser(null)
+                    applyUser(null)
                     syncAuthCookie(null)
                 } else {
-                    setUser(session.user ?? null)
+                    applyUser(session.user ?? null)
                     syncAuthCookie(session.access_token)
                 }
             } catch {
                 if (isMounted) {
-                    setUser(null)
+                    applyUser(null)
                     syncAuthCookie(null)
                 }
             } finally {
@@ -61,11 +84,11 @@ export function useAuth() {
             if (!isMounted) return
 
             if (event === 'SIGNED_OUT' || !session) {
-                setUser(null)
+                applyUser(null)
                 syncAuthCookie(null)
                 setLoading(false)
             } else if (session) {
-                setUser(session.user ?? null)
+                applyUser(session.user ?? null)
                 syncAuthCookie(session.access_token)
                 setLoading(false)
             }
@@ -84,7 +107,7 @@ export function useAuth() {
             password,
         })
         if (!error && data.user) {
-            setUser(data.user)
+            applyUser(data.user)
         }
         return {data, error}
     }
@@ -96,7 +119,7 @@ export function useAuth() {
             password,
         })
         if (!error && data.user) {
-            setUser(data.user)
+            applyUser(data.user)
         }
         return {data, error}
     }
@@ -124,7 +147,7 @@ export function useAuth() {
     const logout = async () => {
         syncAuthCookie(null)
         await supabase.auth.signOut()
-        setUser(null)
+        applyUser(null)
     }
 
     const deleteAccount = async () => {
@@ -148,7 +171,7 @@ export function useAuth() {
         // Sign out locally after deletion
         syncAuthCookie(null)
         await supabase.auth.signOut()
-        setUser(null)
+        applyUser(null)
         return {error: null}
     }
 

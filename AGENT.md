@@ -38,7 +38,8 @@ See §3 for the full decision tree on which of these patterns applies when you'r
 
 A production-grade, highly modular **hackathon and MVP starter template**: a Next.js web app plus an Expo mobile app sharing one Supabase backend, engineered to let teams build and ship full-stack products (web + native) within 24–48 hours without sacrificing production-level architecture.
 
-- **`apps/web`** is the full product: Supabase auth (email/password + Google/GitHub OAuth), user profiles, an AI chatbot with vision/voice/structured-output (Google Gemini), OpenStreetMap geolocation, an analytics dashboard, 57 UI components, BG/EN i18n with a colorblind-friendly mode, Docker support. Full detail: [`apps/web/AGENT.md`](apps/web/AGENT.md).
+- **`apps/web`** is the template's infrastructure layer: Supabase auth (email/password + Google/GitHub OAuth), user profiles, 57 UI components, BG/EN i18n with a colorblind-friendly mode, Docker support. Its generic marketing pages and the AI-chat/analytics-dashboard *pages* were removed once KingFloor became the actual product (see below) — the AI chat and analytics **API routes** (`/api/ai/*`, `/api/analytics/*`) are still there and still used by `apps/mobile`, just with no web page consuming them anymore.
+- **KingFloor** (`apps/web/app/building/*`, `apps/web/app/api/building/*`) is the actual product, and `/building` is the web app's home screen post-login: a платформа за етажна собственост (condo/HOA management). Buildings → units, fees & payments, expenses, announcements, voting (with document attachments), maintenance issues. Full detail: [`docs/kingfloor.md`](docs/kingfloor.md).
 - **`apps/mobile`** calls that same backend: AI chat, a dashboard, account settings, a live map (via `WebView`), dark mode, and BG/EN i18n — all against `apps/web`'s existing API, not reimplemented. Full detail: [`docs/mobile.md`](docs/mobile.md).
 
 ---

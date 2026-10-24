@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { BarChart3, Home, Map as MapIcon, Settings as SettingsIcon, Sparkles, User } from 'lucide-react-native';
+import { Building2, Settings as SettingsIcon } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useI18n } from '../../hooks/useI18n';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -36,36 +36,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t.common.home,
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="ai"
-        options={{
-          title: t.dashboard.aiChat,
-          tabBarIcon: ({ color, size }) => <Sparkles color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: t.common.dashboard,
-          tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{
-          title: t.common.map,
-          tabBarIcon: ({ color, size }) => <MapIcon color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t.settings.tabProfile,
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          title: t.nav.building,
+          tabBarIcon: ({ color, size }) => <Building2 color={color} size={size} />,
         }}
       />
       <Tabs.Screen

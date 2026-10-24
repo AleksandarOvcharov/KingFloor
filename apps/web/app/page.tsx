@@ -7,7 +7,7 @@ import {Header} from '@/components/header'
 import {Button} from '@workspace/ui/ui/button'
 import {LoadingScreen} from '@workspace/ui/ui/global-loading'
 import {useI18n, tFormat} from '@/lib/i18n/provider'
-import {ArrowRight, Bot, Lock, Palette} from 'lucide-react'
+import {ArrowRight, FileText, Megaphone, Wrench} from 'lucide-react'
 
 export default function Home() {
     const {user, loading} = useAuth()
@@ -58,7 +58,7 @@ export default function Home() {
                                     {tFormat(t.home.welcomeBack, {name: profile?.username || user.email?.split('@')[0] || ''})}
                                 </p>
                             </div>
-                            <Link href="/dashboard">
+                            <Link href="/building">
                                 <Button size="lg">
                                     {t.home.goToDashboard}
                                     <ArrowRight className="ml-2 h-4 w-4"/>
@@ -68,42 +68,33 @@ export default function Home() {
                     )}
 
                     <div className="grid md:grid-cols-3 gap-6 pt-16">
-                        <Link href="/features" className="block">
-                            <div
-                                className="p-6 rounded-lg border bg-card hover:border-primary transition-colors cursor-pointer h-full text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <Lock className="h-5 w-5 text-primary"/>
-                                    <h3 className="font-semibold">{t.home.featureAuthTitle}</h3>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {t.home.featureAuthDescription}
-                                </p>
+                        <div className="p-6 rounded-lg border bg-card h-full text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <FileText className="h-5 w-5 text-primary"/>
+                                <h3 className="font-semibold">{t.home.featureAuthTitle}</h3>
                             </div>
-                        </Link>
-                        <Link href="/features" className="block">
-                            <div
-                                className="p-6 rounded-lg border bg-card hover:border-primary transition-colors cursor-pointer h-full text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <Palette className="h-5 w-5 text-primary"/>
-                                    <h3 className="font-semibold">{t.home.featureUiTitle}</h3>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {t.home.featureUiDescription}
-                                </p>
+                            <p className="text-sm text-muted-foreground">
+                                {t.home.featureAuthDescription}
+                            </p>
+                        </div>
+                        <div className="p-6 rounded-lg border bg-card h-full text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Megaphone className="h-5 w-5 text-primary"/>
+                                <h3 className="font-semibold">{t.home.featureUiTitle}</h3>
                             </div>
-                        </Link>
-                        <Link href="/ai" className="block">
-                            <div
-                                className="p-6 rounded-lg border bg-card hover:border-primary transition-colors cursor-pointer h-full text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <Bot className="h-5 w-5 text-primary"/>
-                                    <h3 className="font-semibold">{t.home.featureAiTitle}</h3>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {t.home.featureAiDescription}
-                                </p>
+                            <p className="text-sm text-muted-foreground">
+                                {t.home.featureUiDescription}
+                            </p>
+                        </div>
+                        <div className="p-6 rounded-lg border bg-card h-full text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Wrench className="h-5 w-5 text-primary"/>
+                                <h3 className="font-semibold">{t.home.featureAiTitle}</h3>
                             </div>
-                        </Link>
+                            <p className="text-sm text-muted-foreground">
+                                {t.home.featureAiDescription}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
