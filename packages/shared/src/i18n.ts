@@ -481,6 +481,7 @@ const strings = {
         navFees: {en: 'Fees', bg: 'Такси'},
         navExpenses: {en: 'Expenses', bg: 'Разходи'},
         navAnnouncements: {en: 'Announcements', bg: 'Обявления'},
+        navChat: {en: 'Chat', bg: 'Чат'},
         navPolls: {en: 'Voting', bg: 'Гласувания'},
         navIssues: {en: 'Maintenance', bg: 'Ремонти'},
 
@@ -614,6 +615,12 @@ const strings = {
         noCommentsYet: {en: 'No comments yet.', bg: 'Все още няма коментари.'},
         addComment: {en: 'Add comment', bg: 'Добави коментар'},
         commentPlaceholder: {en: 'Write a comment…', bg: 'Напишете коментар…'},
+
+        chatTitle: {en: 'Building chat', bg: 'Чат на сградата'},
+        chatDescription: {en: 'Everyone in the building can see and send messages here.', bg: 'Всички в сградата виждат и могат да изпращат съобщения тук.'},
+        chatPlaceholder: {en: 'Write a message…', bg: 'Напишете съобщение…'},
+        sendMessage: {en: 'Send', bg: 'Изпрати'},
+        noMessagesYet: {en: 'No messages yet — say hello!', bg: 'Все още няма съобщения — поздравете се!'},
 
         attachDocument: {en: 'Attach a document', bg: 'Прикачи документ'},
         viewAttachment: {en: 'View document', bg: 'Виж документа'},

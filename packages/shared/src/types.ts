@@ -207,6 +207,18 @@ export interface MaintenanceIssue {
     comment_count?: number
 }
 
+/** A message in the building's shared chat — distinct from ChatMessage (AI chat). */
+export interface BuildingChatMessage {
+    id: string
+    building_id: string
+    sender_id: string | null
+    body: string
+    created_at: string
+    // Joined fields:
+    sender_name?: string | null
+    sender_avatar_url?: string | null
+}
+
 // Expenses — the building's own spending (разходи), as opposed to Fee/Payment
 // which track money coming IN from residents. Together they make up the
 // касова книга (cash book) shown on the admin dashboard.

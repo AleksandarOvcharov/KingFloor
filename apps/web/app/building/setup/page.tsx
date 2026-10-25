@@ -83,6 +83,7 @@ function CreateBuildingCard() {
 function JoinBuildingCard() {
     const {t} = useI18n()
     const router = useRouter()
+    const {refetch} = useBuildingContext()
     const {result, loading, lookup, join, reset} = useJoinBuilding()
     const [code, setCode] = useState('')
     const [unitId, setUnitId] = useState('')
@@ -100,11 +101,17 @@ function JoinBuildingCard() {
         setJoining(true)
         setError(null)
         const res = await join(code, unitId)
-        setJoining(false)
         if (!res.success) {
+            setJoining(false)
             setError(res.error ?? null)
             return
         }
+        // Without this, the shared BuildingContext still has the stale
+        // pre-join membership (null), so /building's layout guard sees
+        // "no membership" and bounces straight back here — the join
+        // succeeded on the server, but the UI looked like it hadn't.
+        await refetch()
+        setJoining(false)
         router.push('/building')
     }
 

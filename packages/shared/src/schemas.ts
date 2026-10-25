@@ -166,6 +166,11 @@ export const createIssueCommentSchema = z.object({
 })
 export type CreateIssueCommentInput = z.infer<typeof createIssueCommentSchema>
 
+export const createChatMessageSchema = z.object({
+    body: z.string().trim().min(1).max(2000),
+})
+export type CreateChatMessageInput = z.infer<typeof createChatMessageSchema>
+
 export const createExpenseSchema = z.object({
     category: z.string().trim().min(1).max(60),
     description: z.string().trim().max(500).optional(),

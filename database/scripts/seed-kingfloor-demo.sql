@@ -89,9 +89,14 @@ BEGIN
         VALUES (v_fee_id, v_unit_ids[i], 45.00, 'cash', v_admin_id, NOW() - INTERVAL '20 days');
 
         IF i % 3 = 0 THEN
-            -- overdue: due date already passed, still unpaid
+            -- Overdue is a client-derived display state (unpaid + due_date in
+            -- the past), never a literal stored status — the real API/app
+            -- never writes 'overdue' to this column, so seeding it here would
+            -- desync this demo data from how every other fee actually gets
+            -- created, which is exactly the kind of "doesn't match reality"
+            -- bug this seed script should not reproduce.
             INSERT INTO public.fees (building_id, unit_id, period, amount, due_date, status)
-            VALUES (v_building_id, v_unit_ids[i], v_period_cur, 45.00, (CURRENT_DATE - INTERVAL '5 days')::date, 'overdue');
+            VALUES (v_building_id, v_unit_ids[i], v_period_cur, 45.00, (CURRENT_DATE - INTERVAL '5 days')::date, 'unpaid');
         ELSIF i % 2 = 0 THEN
             -- paid already this month too
             INSERT INTO public.fees (building_id, unit_id, period, amount, due_date, status, paid_at)

@@ -13,7 +13,7 @@ import {Button} from '@workspace/ui/ui/button'
 import {copyToClipboard} from '@/lib/copy-to-clipboard'
 import {cn} from '@/lib/utils'
 import {useI18n} from '@/lib/i18n/provider'
-import {Building2, Check, Coins, Copy, FileText, LayoutDashboard, Megaphone, Settings, Vote, Wrench} from 'lucide-react'
+import {Building2, Check, Coins, Copy, FileText, LayoutDashboard, Megaphone, MessageCircle, Settings, Vote, Wrench} from 'lucide-react'
 
 function InviteCode({code}: {code: string}) {
     const {t} = useI18n()
@@ -113,6 +113,7 @@ function BuildingLayoutInner({children}: {children: React.ReactNode}) {
         {href: '/building/fees', label: t.building.navFees, icon: FileText},
         {href: '/building/expenses', label: t.building.navExpenses, icon: Coins},
         {href: '/building/announcements', label: t.building.navAnnouncements, icon: Megaphone},
+        {href: '/building/chat', label: t.building.navChat, icon: MessageCircle},
         {href: '/building/polls', label: t.building.navPolls, icon: Vote},
         {href: '/building/issues', label: t.building.navIssues, icon: Wrench},
         ...(membership.role === 'admin' ? [{href: '/building/settings', label: t.building.navSettings, icon: Settings}] : []),

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Building2, Settings as SettingsIcon } from 'lucide-react-native';
+import { Building2, MessageCircle, Settings as SettingsIcon } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { useI18n } from '../../hooks/useI18n';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -38,6 +38,13 @@ export default function TabLayout() {
         options={{
           title: t.nav.building,
           tabBarIcon: ({ color, size }) => <Building2 color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: t.building.navChat,
+          tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
         }}
       />
       <Tabs.Screen

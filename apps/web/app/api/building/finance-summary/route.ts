@@ -118,12 +118,14 @@ export async function GET(request: NextRequest) {
             const unitFees = feesByUnit.get(m.unit_id as string) ?? []
             const unpaid = unitFees.filter((f) => f.status !== 'paid')
             const paid = unitFees.filter((f) => f.status === 'paid')
-            let status: OwnerDuesStatus = 'unpaid'
-            if (unitFees.length > 0) {
-                if (unpaid.length === 0) status = 'paid'
-                else if (paid.length > 0) status = 'partial'
-                else status = 'unpaid'
-            }
+            // No fee ever generated for this unit isn't the same as "unpaid"
+            // — defaulting to 'unpaid' here showed every not-yet-billed
+            // resident with a red "unpaid" badge and nothing actually owed,
+            // which is exactly the "doesn't match reality" bug this fixes.
+            let status: OwnerDuesStatus
+            if (unitFees.length === 0 || unpaid.length === 0) status = 'paid'
+            else if (paid.length > 0) status = 'partial'
+            else status = 'unpaid'
             return {
                 user_id: m.user_id,
                 display_name: profileById.get(m.user_id) ?? '—',
