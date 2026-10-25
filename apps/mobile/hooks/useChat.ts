@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BuildingChatMessage } from '@workspace/shared';
 import { apiFetch } from '../lib/api-client';
+import { supabase } from '../lib/supabase';
 import { useSession } from './useSession';
 import { useI18n } from './useI18n';
 
 export type { BuildingChatMessage };
 
-const POLL_INTERVAL_MS = 4000;
-
-// Mirrors apps/web's useChat(): polls instead of a real Supabase Realtime
-// subscription — simplest thing that keeps a shared building chat feeling
-// alive without wiring up a channel on top of apiFetch.
-export function useChat(enabled: boolean) {
+// Mirrors apps/web's useChat(): live via a Supabase Realtime channel
+// (WebSocket) subscribed to INSERTs on building_chat_messages, filtered to
+// this building — no polling. React Native's global WebSocket (which Expo
+// provides) is what realtime-js uses under the hood here, same as the
+// browser's WebSocket on web.
+export function useChat(enabled: boolean, buildingId: string | undefined) {
   const { session } = useSession();
   const { t } = useI18n();
   const [messages, setMessages] = useState<BuildingChatMessage[]>([]);
@@ -46,12 +47,21 @@ export function useChat(enabled: boolean) {
   }, [refetch]);
 
   useEffect(() => {
-    if (!enabled || !session) return;
-    const interval = setInterval(() => {
-      if (!sendingRef.current) refetch();
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [enabled, session, refetch]);
+    if (!enabled || !session || !buildingId) return;
+    const channel = supabase
+      .channel(`building-chat-${buildingId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'building_chat_messages', filter: `building_id=eq.${buildingId}` },
+        () => {
+          if (!sendingRef.current) refetch();
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [enabled, session, buildingId, refetch]);
 
   const sendMessage = async (body: string): Promise<{ success: boolean; error?: string }> => {
     sendingRef.current = true;

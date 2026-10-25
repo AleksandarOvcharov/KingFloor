@@ -1,21 +1,22 @@
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {getAuthHeaders} from '@/lib/api/client'
 import {createResourceCache} from '@/lib/building/cache'
+import {supabase} from '@/lib/supabase/client'
 import type {BuildingChatMessage} from '@workspace/shared'
 
 export type {BuildingChatMessage}
 
-const POLL_INTERVAL_MS = 4000
-
 const chatCache = createResourceCache<BuildingChatMessage[]>()
 
 /**
- * Polls instead of a real Supabase Realtime subscription — simplest thing
- * that makes a shared chat feel alive without adding a channel/publication
- * setup. Good enough for a building-sized group; swap for Realtime if this
- * ever needs to scale past that.
+ * Live via a Supabase Realtime channel (WebSocket) subscribed to INSERTs on
+ * building_chat_messages, filtered to this building — no polling. Realtime
+ * only hands back the raw inserted row (no joined sender_name/avatar_url,
+ * those are computed server-side in the API route), so a new-message event
+ * just triggers a normal refetch instead of trying to merge a half-enriched
+ * row into state.
  */
-export function useChat(enabled: boolean) {
+export function useChat(enabled: boolean, buildingId: string | undefined) {
     const cached = chatCache.get()
     const [messages, setMessages] = useState<BuildingChatMessage[]>(cached ?? [])
     const [loading, setLoading] = useState(!cached)
@@ -51,13 +52,24 @@ export function useChat(enabled: boolean) {
     }, [refetch])
 
     useEffect(() => {
-        if (!enabled) return
-        const interval = setInterval(() => {
-            // Don't let a poll tick clobber a send that's still in flight.
-            if (!sendingRef.current) refetch()
-        }, POLL_INTERVAL_MS)
-        return () => clearInterval(interval)
-    }, [enabled, refetch])
+        if (!enabled || !buildingId) return
+        const channel = supabase
+            .channel(`building-chat-${buildingId}`)
+            .on(
+                'postgres_changes',
+                {event: 'INSERT', schema: 'public', table: 'building_chat_messages', filter: `building_id=eq.${buildingId}`},
+                () => {
+                    // Don't let an echo of our own just-sent message (or
+                    // anyone else's mid-flight send) interleave weirdly with
+                    // sendMessage's own optimistic append below.
+                    if (!sendingRef.current) refetch()
+                },
+            )
+            .subscribe()
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [enabled, buildingId, refetch])
 
     const sendMessage = async (body: string): Promise<{success: boolean; error?: string}> => {
         sendingRef.current = true

@@ -18,7 +18,7 @@ import {MessageCircle, Send} from 'lucide-react'
 export default function ChatPage() {
     const {user} = useAuth()
     const {membership} = useBuildingContext()
-    const {messages, loading, error, sendMessage} = useChat(!!membership)
+    const {messages, loading, error, sendMessage} = useChat(!!membership, membership?.building.id)
     const {t, locale} = useI18n()
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)

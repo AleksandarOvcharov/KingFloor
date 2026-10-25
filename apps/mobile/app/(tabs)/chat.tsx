@@ -13,6 +13,7 @@ import {
 import { router } from 'expo-router';
 import { Send } from 'lucide-react-native';
 import { useSession } from '../../hooks/useSession';
+import { useBuilding } from '../../hooks/useBuilding';
 import { useChat } from '../../hooks/useChat';
 import { useTheme } from '../../hooks/useTheme';
 import { useI18n } from '../../hooks/useI18n';
@@ -22,7 +23,8 @@ import type { BuildingChatMessage } from '@workspace/shared';
 
 export default function ChatScreen() {
   const { session, loading: sessionLoading } = useSession();
-  const { messages, loading, error, sendMessage } = useChat(!!session);
+  const { membership } = useBuilding();
+  const { messages, loading, error, sendMessage } = useChat(!!session, membership?.building.id);
   const { colors } = useTheme();
   const { t, locale } = useI18n();
   const styles = useMemo(() => createStyles(colors), [colors]);
