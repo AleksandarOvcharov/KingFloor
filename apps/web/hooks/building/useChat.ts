@@ -7,14 +7,22 @@ import type {BuildingChatMessage} from '@workspace/shared'
 export type {BuildingChatMessage}
 
 const chatCache = createResourceCache<BuildingChatMessage[]>()
+const FALLBACK_POLL_MS = 6000
 
 /**
  * Live via a Supabase Realtime channel (WebSocket) subscribed to INSERTs on
- * building_chat_messages, filtered to this building — no polling. Realtime
- * only hands back the raw inserted row (no joined sender_name/avatar_url,
- * those are computed server-side in the API route), so a new-message event
- * just triggers a normal refetch instead of trying to merge a half-enriched
- * row into state.
+ * building_chat_messages, filtered to this building. Realtime only hands
+ * back the raw inserted row (no joined sender_name/avatar_url, those are
+ * computed server-side in the API route), so a new-message event just
+ * triggers a normal refetch instead of trying to merge a half-enriched row
+ * into state.
+ *
+ * Also keeps a slow background poll alongside the socket — Realtime needs
+ * building_chat_messages added to the supabase_realtime publication
+ * (kingfloor-schema.sql does this, but only takes effect once that's
+ * actually been run against the project), and a chat with no fallback at
+ * all is a bad failure mode for a feature people expect to just update.
+ * The socket, when it's wired up, delivers well before this ever fires.
  */
 export function useChat(enabled: boolean, buildingId: string | undefined) {
     const cached = chatCache.get()
@@ -70,6 +78,14 @@ export function useChat(enabled: boolean, buildingId: string | undefined) {
             supabase.removeChannel(channel)
         }
     }, [enabled, buildingId, refetch])
+
+    useEffect(() => {
+        if (!enabled) return
+        const interval = setInterval(() => {
+            if (!sendingRef.current) refetch()
+        }, FALLBACK_POLL_MS)
+        return () => clearInterval(interval)
+    }, [enabled, refetch])
 
     const sendMessage = async (body: string): Promise<{success: boolean; error?: string}> => {
         sendingRef.current = true

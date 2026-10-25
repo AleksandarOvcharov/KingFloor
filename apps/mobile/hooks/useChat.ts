@@ -7,11 +7,14 @@ import { useI18n } from './useI18n';
 
 export type { BuildingChatMessage };
 
+const FALLBACK_POLL_MS = 6000;
+
 // Mirrors apps/web's useChat(): live via a Supabase Realtime channel
 // (WebSocket) subscribed to INSERTs on building_chat_messages, filtered to
-// this building — no polling. React Native's global WebSocket (which Expo
-// provides) is what realtime-js uses under the hood here, same as the
-// browser's WebSocket on web.
+// this building. React Native's global WebSocket (which Expo provides) is
+// what realtime-js uses under the hood here, same as the browser's
+// WebSocket on web. A slow poll runs alongside it as a fallback — see
+// apps/web's useChat() for why.
 export function useChat(enabled: boolean, buildingId: string | undefined) {
   const { session } = useSession();
   const { t } = useI18n();
@@ -62,6 +65,14 @@ export function useChat(enabled: boolean, buildingId: string | undefined) {
       supabase.removeChannel(channel);
     };
   }, [enabled, session, buildingId, refetch]);
+
+  useEffect(() => {
+    if (!enabled || !session) return;
+    const interval = setInterval(() => {
+      if (!sendingRef.current) refetch();
+    }, FALLBACK_POLL_MS);
+    return () => clearInterval(interval);
+  }, [enabled, session, refetch]);
 
   const sendMessage = async (body: string): Promise<{ success: boolean; error?: string }> => {
     sendingRef.current = true;

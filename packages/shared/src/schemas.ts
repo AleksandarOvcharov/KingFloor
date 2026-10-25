@@ -5,13 +5,13 @@ import { z } from 'zod'
 // exists in the current flow, so login/signup share the same shape; kept
 // as separate named schemas since that's likely to diverge later.
 export const loginSchema = z.object({
-    email: z.string().email(),
+    email: z.string().trim().toLowerCase().email(),
     password: z.string().min(6),
 })
 export type LoginInput = z.infer<typeof loginSchema>
 
 export const signupSchema = z.object({
-    email: z.string().email(),
+    email: z.string().trim().toLowerCase().email(),
     password: z.string().min(6),
 })
 export type SignupInput = z.infer<typeof signupSchema>

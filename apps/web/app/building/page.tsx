@@ -117,7 +117,7 @@ function AdminDashboard() {
         return (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {Array.from({length: 4}).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl"/>)}
+                    {Array.from({length: 4}).map((_, i) => <Skeleton key={i} className="min-h-56 rounded-xl"/>)}
                 </div>
                 <Skeleton className="h-72 rounded-xl"/>
             </div>
@@ -130,7 +130,7 @@ function AdminDashboard() {
         <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Income & expenses */}
-                <Card>
+                <Card className="h-full min-h-56 flex flex-col">
                     <CardHeader className="flex flex-row items-start justify-between pb-2">
                         <div>
                             <CardTitle className="text-sm font-medium">{t.building.dashboardIncomeExpense}</CardTitle>
@@ -138,7 +138,7 @@ function AdminDashboard() {
                         </div>
                         <Badge variant="outline" className="text-xs">{t.building.dashboardCashbook}</Badge>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-2 flex-1 flex flex-col justify-center">
                         <p className={`text-2xl font-bold ${netThisMonth >= 0 ? 'text-success' : 'text-destructive'}`}>
                             {netThisMonth >= 0 ? '+' : ''}{netThisMonth.toFixed(2)} {t.common.currencySymbol}
                         </p>
@@ -173,7 +173,7 @@ function AdminDashboard() {
                 </Card>
 
                 {/* Total balance */}
-                <Card>
+                <Card className="h-full min-h-56 flex flex-col">
                     <CardHeader className="flex flex-row items-start justify-between pb-2">
                         <div>
                             <CardTitle className="text-sm font-medium">{t.building.dashboardTotalBalance}</CardTitle>
@@ -181,7 +181,7 @@ function AdminDashboard() {
                         </div>
                         <Badge variant="outline" className="text-xs">{t.building.dashboardCashbook}</Badge>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-3 flex-1 flex flex-col justify-center">
                         <p className="text-2xl font-bold">{summary.cashBalance.toFixed(2)} {t.common.currencySymbol}</p>
                         <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
                             <div
@@ -198,8 +198,8 @@ function AdminDashboard() {
                 </Card>
 
                 {/* Remaining to pay */}
-                <Link href="/building/fees">
-                    <Card className="h-full hover:border-primary/50 transition-colors">
+                <Link href="/building/fees" className="block h-full">
+                    <Card className="h-full min-h-56 flex flex-col hover:border-primary/50 transition-colors">
                         <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <div>
                                 <CardTitle className="text-sm font-medium">{t.building.dashboardRemainingToPay}</CardTitle>
@@ -207,7 +207,7 @@ function AdminDashboard() {
                             </div>
                             <Badge variant="destructive" className="text-xs">{t.building.dashboardUnpaidBadge}</Badge>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-3 flex-1 flex flex-col justify-center">
                             <div>
                                 <p className="text-2xl font-bold">{summary.outstandingCount}</p>
                                 <p className="text-xs text-muted-foreground">{t.building.dashboardApartments}</p>
@@ -225,15 +225,15 @@ function AdminDashboard() {
                 </Link>
 
                 {/* Expenses by category */}
-                <Link href="/building/expenses">
-                    <Card className="h-full hover:border-primary/50 transition-colors">
+                <Link href="/building/expenses" className="block h-full">
+                    <Card className="h-full min-h-56 flex flex-col hover:border-primary/50 transition-colors">
                         <CardHeader className="flex flex-row items-start justify-between pb-2">
                             <div>
                                 <CardTitle className="text-sm font-medium">{t.building.dashboardExpensesByCategory}</CardTitle>
                                 <CardDescription className="text-xs">{t.building.dashboardThisMonth}</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="space-y-2.5">
+                        <CardContent className="space-y-2.5 flex-1 flex flex-col justify-center">
                             <p className="text-2xl font-bold">{summary.expensesThisMonth.toFixed(2)} {t.common.currencySymbol}</p>
                             {summary.expensesByCategory.length === 0 ? (
                                 <p className="text-xs text-muted-foreground">{t.building.dashboardNoExpensesYet}</p>
