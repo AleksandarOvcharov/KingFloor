@@ -1,7 +1,16 @@
 import {createClient} from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Same build-time-crash risk as supabaseAdmin below, for the same reason:
+// this module is evaluated eagerly while Next.js collects page data, even
+// for routes that never run during the build. If a deploy platform's Docker
+// build doesn't forward these as build args, createClient(undefined, ...)
+// throws and kills the entire build, not just the route that would've used
+// it. The dummy fallback only covers that build-time evaluation window —
+// the real values are always present at request time (unlike the client
+// bundle's copy of these vars, which really would ship broken if missing,
+// so lib/supabase/client.ts deliberately has no such fallback).
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-anon-key-for-build'
 
 export const supabaseServer = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
