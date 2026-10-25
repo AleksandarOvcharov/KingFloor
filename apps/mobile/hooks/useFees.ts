@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Fee } from '@workspace/shared';
 import { apiFetch } from '../lib/api-client';
 import { useSession } from './useSession';
+import { useI18n } from './useI18n';
 
 export type { Fee };
 
@@ -10,6 +11,7 @@ export type { Fee };
 // for now; a resident checking what they owe is the mobile use case.
 export function useFees(enabled: boolean) {
   const { session } = useSession();
+  const { t } = useI18n();
   const [fees, setFees] = useState<Fee[]>([]);
   const [totals, setTotals] = useState({ collected: 0, outstanding: 0 });
   const [loading, setLoading] = useState(true);
@@ -25,18 +27,18 @@ export function useFees(enabled: boolean) {
       const response = await apiFetch('/api/building/fees');
       const json = await response.json();
       if (!response.ok) {
-        setError(json.error || 'Failed to load fees');
+        setError(json.error || t.errors.generic);
         return;
       }
       setFees(json.data);
       setTotals(json.totals ?? { collected: 0, outstanding: 0 });
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load fees');
+      setError(err instanceof Error ? err.message : t.errors.generic);
     } finally {
       setLoading(false);
     }
-  }, [enabled, session]);
+  }, [enabled, session, t]);
 
   useEffect(() => {
     refetch();

@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, {params}: {params: Promise<{id
             // inflates the cash balance / income chart by the same amount
             // every time an admin corrects a mistaken click.
             await supabaseAdmin.from('payments').delete().eq('fee_id', id)
-            const [{data: updated, error}] = await Promise.all([
+            const [feeResult, paymentResult] = await Promise.all([
                 supabaseAdmin.from('fees').update({status: 'paid', paid_at: now}).eq('id', id).select().single(),
                 supabaseAdmin.from('payments').insert({
                     fee_id: id,
@@ -51,8 +51,18 @@ export async function PATCH(request: NextRequest, {params}: {params: Promise<{id
                     paid_at: now,
                 }),
             ])
-            if (error) return NextResponse.json({error: error.message}, {status: 500})
-            return NextResponse.json({data: updated})
+            // Both errors must be checked — a payments-insert failure here
+            // would otherwise mark the fee paid while leaving no payment
+            // record behind, silently under-counting real income on every
+            // cash-balance/income-chart read from that point on.
+            if (feeResult.error) return NextResponse.json({error: feeResult.error.message}, {status: 500})
+            if (paymentResult.error) {
+                // The fee update already landed — roll it back rather than
+                // leave a "paid" fee with no payment row backing it.
+                await supabaseAdmin.from('fees').update({status: 'unpaid', paid_at: null}).eq('id', id)
+                return NextResponse.json({error: paymentResult.error.message}, {status: 500})
+            }
+            return NextResponse.json({data: feeResult.data})
         }
 
         // Reverting to unpaid must remove the payment record it created,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Poll } from '@workspace/shared';
 import { apiFetch } from '../lib/api-client';
 import { useSession } from './useSession';
+import { useI18n } from './useI18n';
 
 export type { Poll };
 
@@ -10,6 +11,7 @@ export type { Poll };
 // action residents most want to do right from their phone.
 export function usePolls(enabled: boolean) {
   const { session } = useSession();
+  const { t } = useI18n();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,17 +26,17 @@ export function usePolls(enabled: boolean) {
       const response = await apiFetch('/api/building/polls');
       const json = await response.json();
       if (!response.ok) {
-        setError(json.error || 'Failed to load votes');
+        setError(json.error || t.errors.generic);
         return;
       }
       setPolls(json.data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load votes');
+      setError(err instanceof Error ? err.message : t.errors.generic);
     } finally {
       setLoading(false);
     }
-  }, [enabled, session]);
+  }, [enabled, session, t]);
 
   useEffect(() => {
     refetch();
@@ -51,7 +53,7 @@ export function usePolls(enabled: boolean) {
       await refetch();
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to vote' };
+      return { success: false, error: err instanceof Error ? err.message : t.errors.generic };
     }
   };
 

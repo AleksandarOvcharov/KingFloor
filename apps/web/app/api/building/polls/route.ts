@@ -97,7 +97,12 @@ export async function POST(request: NextRequest) {
             attachment_name: option.attachment_name || null,
         }))
         const {data: options, error: optionsError} = await supabaseAdmin.from('poll_options').insert(optionRows).select()
-        if (optionsError) return NextResponse.json({error: optionsError.message}, {status: 500})
+        if (optionsError) {
+            // Don't leave a zero-option poll behind for an admin to notice
+            // and clean up manually.
+            await supabaseAdmin.from('polls').delete().eq('id', poll.id)
+            return NextResponse.json({error: optionsError.message}, {status: 500})
+        }
 
         return NextResponse.json({data: {...poll, options}}, {status: 201})
     } catch (error) {

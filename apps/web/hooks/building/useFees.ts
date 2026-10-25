@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {getAuthHeaders} from '@/lib/api/client'
 import {createResourceCache} from '@/lib/building/cache'
 import type {Fee} from '@workspace/shared'
@@ -23,16 +23,25 @@ export function useFees(enabled: boolean) {
     const [loading, setLoading] = useState(!cached)
     const [error, setError] = useState<string | null>(null)
 
+    // Guards against a slow background refetch landing *after* setFeeStatus's
+    // optimistic update and overwriting it with stale pre-update data, even
+    // though the mutation itself already succeeded. Any operation bumps this
+    // ref when it starts; a result only gets applied if it's still the most
+    // recent one issued.
+    const requestIdRef = useRef(0)
+
     const refetch = useCallback(async () => {
         if (!enabled) {
             setLoading(false)
             return
         }
+        const requestId = ++requestIdRef.current
         if (!feesCache.get()) setLoading(true)
         try {
             const headers = await getAuthHeaders()
             const res = await fetch('/api/building/fees', {headers})
             const json = await res.json()
+            if (requestId !== requestIdRef.current) return
             if (!res.ok) {
                 setError(json.error || 'Failed to load fees')
                 return
@@ -43,9 +52,11 @@ export function useFees(enabled: boolean) {
             setTotals(totalsData)
             setError(null)
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load fees')
+            if (requestId === requestIdRef.current) {
+                setError(err instanceof Error ? err.message : 'Failed to load fees')
+            }
         } finally {
-            setLoading(false)
+            if (requestId === requestIdRef.current) setLoading(false)
         }
     }, [enabled])
 
@@ -83,6 +94,9 @@ export function useFees(enabled: boolean) {
      * pre-update data.
      */
     const setFeeStatus = async (feeId: string, action: 'mark_paid' | 'mark_unpaid', method?: 'cash' | 'bank_transfer'): Promise<{success: boolean; error?: string}> => {
+        // Supersede any refetch already in flight so its (now-stale) result
+        // can't land after this and overwrite the optimistic update below.
+        const requestId = ++requestIdRef.current
         const previousFees = fees
         const optimisticFees = fees.map((f) =>
             f.id === feeId
@@ -103,21 +117,27 @@ export function useFees(enabled: boolean) {
             })
             const json = await res.json()
             if (!res.ok) {
-                setFees(previousFees)
-                setTotals(computeTotals(previousFees))
-                feesCache.set({fees: previousFees, totals: computeTotals(previousFees)})
+                if (requestId === requestIdRef.current) {
+                    setFees(previousFees)
+                    setTotals(computeTotals(previousFees))
+                    feesCache.set({fees: previousFees, totals: computeTotals(previousFees)})
+                }
                 return {success: false, error: json.error}
             }
             const reconciled = optimisticFees.map((f) => (f.id === feeId ? {...f, ...json.data} : f))
             const reconciledTotals = computeTotals(reconciled)
-            setFees(reconciled)
-            setTotals(reconciledTotals)
             feesCache.set({fees: reconciled, totals: reconciledTotals})
+            if (requestId === requestIdRef.current) {
+                setFees(reconciled)
+                setTotals(reconciledTotals)
+            }
             return {success: true}
         } catch (err) {
-            setFees(previousFees)
-            setTotals(computeTotals(previousFees))
-            feesCache.set({fees: previousFees, totals: computeTotals(previousFees)})
+            if (requestId === requestIdRef.current) {
+                setFees(previousFees)
+                setTotals(computeTotals(previousFees))
+                feesCache.set({fees: previousFees, totals: computeTotals(previousFees)})
+            }
             return {success: false, error: err instanceof Error ? err.message : 'Failed to update fee'}
         }
     }

@@ -33,7 +33,7 @@ export default function SignInScreen() {
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      setError(result.error.issues[0]?.message ?? 'Invalid email or password');
+      setError(result.error.issues[0]?.message ?? t.errors.validation);
       return;
     }
 

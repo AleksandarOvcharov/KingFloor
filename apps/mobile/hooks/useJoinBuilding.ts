@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Building, JoinableUnit } from '@workspace/shared';
 import { apiFetch } from '../lib/api-client';
+import { useI18n } from './useI18n';
 
 // Mirrors apps/web's useJoinBuilding(): resolve an invite code to the
 // building + its free units (GET /api/building/lookup), then claim one
@@ -8,6 +9,7 @@ import { apiFetch } from '../lib/api-client';
 // a building (the admin-only "I manage this building" path) stays a web-only
 // flow for now, since it's a one-time setup task better done at a keyboard.
 export function useJoinBuilding() {
+  const { t } = useI18n();
   const [result, setResult] = useState<{
     building: Pick<Building, 'id' | 'name' | 'address'>;
     units: JoinableUnit[];
@@ -27,7 +29,7 @@ export function useJoinBuilding() {
       return { success: true };
     } catch (err) {
       setResult(null);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to look up building' };
+      return { success: false, error: err instanceof Error ? err.message : t.errors.generic };
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export function useJoinBuilding() {
       if (!response.ok) return { success: false, error: json.error };
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to join building' };
+      return { success: false, error: err instanceof Error ? err.message : t.errors.generic };
     }
   };
 

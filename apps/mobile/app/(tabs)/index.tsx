@@ -17,6 +17,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Inpu
 // A section (fees/announcements/polls) that failed to load shouldn't block
 // the rest of the screen or masquerade as "no data" — show what went
 // wrong and a retry scoped to just that card.
+// `fee.status` from the API is only ever 'unpaid' | 'paid' — 'overdue' is a
+// client-derived display value (mirrors apps/web/app/building/fees/page.tsx's
+// effectiveStatus()), never the real stored status. Comparing fee.status
+// directly against 'overdue' can never be true.
+function isOverdue(fee: { status: string; due_date: string | null }): boolean {
+  if (fee.status !== 'unpaid' || !fee.due_date) return false;
+  return new Date(fee.due_date) < new Date(new Date().toDateString());
+}
+
 function SectionError({
   error,
   onRetry,
@@ -168,8 +177,8 @@ export default function HomeScreen() {
               <View key={fee.id} style={styles.feeRow}>
                 <Text style={styles.feeRowPeriod}>{fee.period}</Text>
                 <Text style={styles.feeRowAmount}>{fee.amount.toFixed(2)} €</Text>
-                <Badge variant={fee.status === 'overdue' ? 'destructive' : 'outline'}>
-                  {fee.status === 'overdue' ? t.building.feeStatusOverdue : t.building.feeStatusUnpaid}
+                <Badge variant={isOverdue(fee) ? 'destructive' : 'outline'}>
+                  {isOverdue(fee) ? t.building.feeStatusOverdue : t.building.feeStatusUnpaid}
                 </Badge>
               </View>
             ))

@@ -106,7 +106,11 @@ export type GenerateFeesInput = z.infer<typeof generateFeesSchema>
 
 export const feeActionSchema = z.object({
     action: z.enum(['mark_paid', 'mark_unpaid']),
-    method: z.string().trim().max(40).optional(),
+    // Must stay in sync with the only two values finance-summary's cash/online
+    // split actually recognizes ('cash' vs. everything else bucketed as
+    // online) — an unconstrained string here let any value through and have
+    // it silently miscounted as online income.
+    method: z.enum(['cash', 'bank_transfer']).optional(),
     note: z.string().trim().max(200).optional(),
 })
 export type FeeActionInput = z.infer<typeof feeActionSchema>

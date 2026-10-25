@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
         const reporterIds = Array.from(new Set((issues ?? []).map((i) => i.reported_by).filter((id): id is string => !!id)))
 
         const [{data: units}, {data: profiles}, {data: comments}] = await Promise.all([
-            unitIds.length ? supabaseAdmin.from('units').select('id, number').in('id', unitIds) : Promise.resolve({data: []}),
+            unitIds.length
+                ? supabaseAdmin.from('units').select('id, number').eq('building_id', membership.building_id).in('id', unitIds)
+                : Promise.resolve({data: []}),
             reporterIds.length
                 ? supabaseAdmin.from('profiles').select('id, display_name, username').in('id', reporterIds)
                 : Promise.resolve({data: []}),
@@ -71,11 +73,28 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({error: parsed.error.issues[0]?.message ?? 'Invalid input'}, {status: 400})
         }
 
+        // A resident can submit any UUID as unit_id — without this check it's
+        // accepted as-is, letting a crafted request attach a unit from a
+        // different building to this building's issue, which GET's
+        // building-scoped unit lookup would then either hide (good) or, before
+        // that scoping existed, leak that other building's unit number into
+        // this building's issue feed.
+        const requestedUnitId = parsed.data.unit_id ?? null
+        if (requestedUnitId) {
+            const {data: unit} = await supabaseAdmin
+                .from('units')
+                .select('id')
+                .eq('id', requestedUnitId)
+                .eq('building_id', membership.building_id)
+                .maybeSingle()
+            if (!unit) return NextResponse.json({error: 'Unit not found'}, {status: 400})
+        }
+
         const {data, error} = await supabaseAdmin
             .from('maintenance_issues')
             .insert({
                 building_id: membership.building_id,
-                unit_id: parsed.data.unit_id ?? membership.unit_id ?? null,
+                unit_id: requestedUnitId ?? membership.unit_id ?? null,
                 reported_by: auth.user.id,
                 title: parsed.data.title,
                 description: parsed.data.description ?? null,
