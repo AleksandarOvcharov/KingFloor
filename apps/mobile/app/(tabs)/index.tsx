@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { Building2, CheckCircle2, Megaphone, Vote } from 'lucide-react-native';
 import { useSession } from '../../hooks/useSession';
 import { useBuilding } from '../../hooks/useBuilding';
@@ -11,7 +12,31 @@ import { usePolls } from '../../hooks/usePolls';
 import { useTheme } from '../../hooks/useTheme';
 import { useI18n, tFormat } from '../../hooks/useI18n';
 import type { ColorTokens } from '../../lib/theme';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input, Badge } from '../../components/ui';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input, Badge, Skeleton } from '../../components/ui';
+
+// A section (fees/announcements/polls) that failed to load shouldn't block
+// the rest of the screen or masquerade as "no data" — show what went
+// wrong and a retry scoped to just that card.
+function SectionError({
+  error,
+  onRetry,
+  retryLabel,
+  styles,
+}: {
+  error: string;
+  onRetry: () => void;
+  retryLabel: string;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <View style={styles.sectionError}>
+      <Text style={styles.errorText}>{error}</Text>
+      <Button variant="outline" size="sm" onPress={onRetry}>
+        {retryLabel}
+      </Button>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const { session, loading: sessionLoading } = useSession();
@@ -21,9 +46,14 @@ export default function HomeScreen() {
   const { membership, loading: membershipLoading, error: membershipError, refetch: refetchMembership } = useBuilding();
 
   const hasBuilding = !!membership;
-  const { fees, totals, loading: feesLoading, refetch: refetchFees } = useFees(hasBuilding);
-  const { announcements, loading: announcementsLoading, refetch: refetchAnnouncements } = useAnnouncements(hasBuilding);
-  const { polls, loading: pollsLoading, refetch: refetchPolls, castVote } = usePolls(hasBuilding);
+  const { fees, totals, loading: feesLoading, error: feesError, refetch: refetchFees } = useFees(hasBuilding);
+  const {
+    announcements,
+    loading: announcementsLoading,
+    error: announcementsError,
+    refetch: refetchAnnouncements,
+  } = useAnnouncements(hasBuilding);
+  const { polls, loading: pollsLoading, error: pollsError, refetch: refetchPolls, castVote } = usePolls(hasBuilding);
 
   const refreshing = membershipLoading || feesLoading || announcementsLoading || pollsLoading;
   const refreshAll = () => {
@@ -54,10 +84,23 @@ export default function HomeScreen() {
     );
   }
 
-  if (membershipLoading && !membership) {
+  if (membershipLoading && !membership && !membershipError) {
+    return (
+      <View style={styles.content}>
+        <Skeleton style={styles.skeletonHeader} />
+        <Skeleton style={styles.skeletonCard} />
+        <Skeleton style={styles.skeletonCard} />
+      </View>
+    );
+  }
+
+  if (membershipError && !membership) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.primary} />
+        <Text style={styles.subtitle}>{membershipError}</Text>
+        <Button variant="outline" onPress={refetchMembership} style={{ marginTop: 16 }}>
+          {t.common.retry}
+        </Button>
       </View>
     );
   }
@@ -74,7 +117,9 @@ export default function HomeScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} tintColor={colors.primary} />}
     >
-      {membershipError ? <Text style={styles.errorText}>{membershipError}</Text> : null}
+      {membershipError ? (
+        <SectionError error={membershipError} onRetry={refetchMembership} retryLabel={t.common.retry} styles={styles} />
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -112,7 +157,11 @@ export default function HomeScreen() {
               <Text style={styles.valueBad}>{totals.outstanding.toFixed(2)} €</Text>
             </View>
           </View>
-          {outstandingFees.length === 0 ? (
+          {feesLoading && fees.length === 0 && !feesError ? (
+            <Skeleton style={styles.skeletonLine} />
+          ) : feesError ? (
+            <SectionError error={feesError} onRetry={refetchFees} retryLabel={t.common.retry} styles={styles} />
+          ) : outstandingFees.length === 0 ? (
             <Text style={styles.subtitleLeft}>{t.building.noFeesYet}</Text>
           ) : (
             outstandingFees.slice(0, 6).map((fee) => (
@@ -136,7 +185,11 @@ export default function HomeScreen() {
           </View>
         </CardHeader>
         <CardContent style={styles.gapContent}>
-          {announcements.length === 0 ? (
+          {announcementsLoading && announcements.length === 0 && !announcementsError ? (
+            <Skeleton style={styles.skeletonLine} />
+          ) : announcementsError ? (
+            <SectionError error={announcementsError} onRetry={refetchAnnouncements} retryLabel={t.common.retry} styles={styles} />
+          ) : announcements.length === 0 ? (
             <Text style={styles.subtitleLeft}>{t.building.noAnnouncementsYet}</Text>
           ) : (
             announcements.slice(0, 5).map((a) => (
@@ -160,7 +213,11 @@ export default function HomeScreen() {
           </View>
         </CardHeader>
         <CardContent style={styles.gapContent}>
-          {polls.length === 0 ? (
+          {pollsLoading && polls.length === 0 && !pollsError ? (
+            <Skeleton style={styles.skeletonLine} />
+          ) : pollsError ? (
+            <SectionError error={pollsError} onRetry={refetchPolls} retryLabel={t.common.retry} styles={styles} />
+          ) : polls.length === 0 ? (
             <Text style={styles.subtitleLeft}>{t.building.noPollsYet}</Text>
           ) : !membership.unit ? (
             <Text style={styles.subtitleLeft}>{t.building.needUnitToVote}</Text>
@@ -190,8 +247,9 @@ function PollCard({
 
   const handleVote = async (optionId: string) => {
     setVoting(optionId);
-    await onVote(poll.id, optionId);
+    const res = await onVote(poll.id, optionId);
     setVoting(null);
+    if (res.success) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   return (
@@ -258,11 +316,16 @@ function JoinBuildingView({
       setError(res.error ?? 'Error');
       return;
     }
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onJoined();
   };
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.flex}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <CardHeader>
           <CardTitle>{t.building.joinTitle}</CardTitle>
@@ -279,6 +342,8 @@ function JoinBuildingView({
                 onChangeText={setCode}
                 placeholder={t.building.joinCodePlaceholder}
                 autoCapitalize="characters"
+                returnKeyType="search"
+                onSubmitEditing={handleLookup}
               />
               <Button onPress={handleLookup} loading={loading} disabled={!code.trim()}>
                 {t.building.findBuilding}
@@ -299,6 +364,9 @@ function JoinBuildingView({
                       key={unit.id}
                       onPress={() => setSelectedUnitId(unit.id)}
                       style={[styles.unitOption, selectedUnitId === unit.id && styles.unitOptionSelected]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: selectedUnitId === unit.id }}
+                      accessibilityLabel={unit.number}
                     >
                       <Text style={styles.value}>{unit.number}</Text>
                       {selectedUnitId === unit.id ? <CheckCircle2 color={colors.primary} size={18} /> : null}
@@ -379,6 +447,23 @@ function createStyles(colors: ColorTokens) {
     errorText: {
       color: colors.destructive,
       fontSize: 13,
+    },
+    sectionError: {
+      gap: 8,
+      alignItems: 'flex-start',
+    },
+    skeletonHeader: {
+      height: 96,
+      borderRadius: 12,
+    },
+    skeletonCard: {
+      height: 120,
+      borderRadius: 12,
+    },
+    skeletonLine: {
+      height: 16,
+      width: '60%',
+      borderRadius: 6,
     },
     rowBetween: {
       flexDirection: 'row',

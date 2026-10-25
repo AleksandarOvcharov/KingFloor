@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const handleSignIn = async () => {
     setError(null);
@@ -79,25 +80,38 @@ export default function SignInScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         autoComplete="email"
+        textContentType="emailAddress"
         keyboardType="email-address"
+        returnKeyType="next"
+        onSubmitEditing={() => passwordRef.current?.focus()}
         editable={!loading && !oauthLoading}
         placeholderTextColor={colors.mutedForeground}
       />
 
       <Text style={styles.label}>{t.auth.password}</Text>
       <TextInput
+        ref={passwordRef}
         style={styles.input}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="password"
+        textContentType="password"
+        returnKeyType="go"
+        onSubmitEditing={handleSignIn}
         editable={!loading && !oauthLoading}
         placeholderTextColor={colors.mutedForeground}
       />
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      <Pressable style={styles.button} onPress={handleSignIn} disabled={loading || !!oauthLoading}>
+      <Pressable
+        style={styles.button}
+        onPress={handleSignIn}
+        disabled={loading || !!oauthLoading}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading || !!oauthLoading, busy: loading }}
+      >
         {loading ? (
           <ActivityIndicator color={colors.primaryForeground} />
         ) : (
@@ -116,6 +130,9 @@ export default function SignInScreen() {
           style={styles.oauthButton}
           onPress={() => handleOAuth('google')}
           disabled={loading || !!oauthLoading}
+          accessibilityRole="button"
+          accessibilityLabel="Continue with Google"
+          accessibilityState={{ disabled: loading || !!oauthLoading, busy: oauthLoading === 'google' }}
         >
           {oauthLoading === 'google' ? (
             <ActivityIndicator color={colors.foreground} size="small" />
@@ -127,6 +144,9 @@ export default function SignInScreen() {
           style={styles.oauthButton}
           onPress={() => handleOAuth('github')}
           disabled={loading || !!oauthLoading}
+          accessibilityRole="button"
+          accessibilityLabel="Continue with GitHub"
+          accessibilityState={{ disabled: loading || !!oauthLoading, busy: oauthLoading === 'github' }}
         >
           {oauthLoading === 'github' ? (
             <ActivityIndicator color={colors.foreground} size="small" />

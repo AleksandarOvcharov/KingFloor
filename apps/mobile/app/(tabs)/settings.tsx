@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { LogOut } from 'lucide-react-native';
 import { useSession } from '../../hooks/useSession';
 import { useProfile } from '../../hooks/useProfile';
@@ -81,6 +82,7 @@ export default function SettingsScreen() {
   };
 
   const handleDeleteAccount = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(t.settings.deleteConfirmTitle, t.settings.deleteAccountDescription, [
       { text: t.common.cancel, style: 'cancel' },
       {
@@ -128,7 +130,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {profileLoading && !profile ? (
         <ActivityIndicator color={colors.primary} />
       ) : (

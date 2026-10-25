@@ -17,7 +17,13 @@ export function LanguageToggle() {
   };
 
   return (
-    <Pressable onPress={cycle} style={styles.button} hitSlop={8}>
+    <Pressable
+      onPress={cycle}
+      style={styles.button}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityLabel={`Change language, currently ${current.nativeName}`}
+    >
       <Text style={styles.flag}>{current.flag}</Text>
       <Text style={[styles.code, { color: colors.foreground }]}>{locale.toUpperCase()}</Text>
     </Pressable>

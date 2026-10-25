@@ -43,6 +43,9 @@ export function Button({
         style,
       ]}
       disabled={isDisabled}
+      hitSlop={size === 'sm' ? 6 : undefined}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       {...props}
     >
       {loading ? (
@@ -108,22 +111,24 @@ function createStyles(colors: ColorTokens) {
     variant_link: {
       backgroundColor: 'transparent',
     },
-    // Sizes
+    // Sizes — heights meet the 44pt (iOS)/48dp (Android) minimum touch
+    // target; size_sm stays visually compact but makes up the difference
+    // via the hitSlop applied above.
     size_default: {
-      height: 40,
+      height: 44,
       paddingHorizontal: 16,
     },
     size_sm: {
-      height: 34,
+      height: 36,
       paddingHorizontal: 12,
     },
     size_lg: {
-      height: 46,
+      height: 48,
       paddingHorizontal: 28,
     },
     size_icon: {
-      height: 40,
-      width: 40,
+      height: 44,
+      width: 44,
       paddingHorizontal: 0,
     },
     // Text

@@ -21,7 +21,7 @@ export function Input({ style, ...props }: TextInputProps) {
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
     input: {
-      height: 40,
+      height: 44,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 8,

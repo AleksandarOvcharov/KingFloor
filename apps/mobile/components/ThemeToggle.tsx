@@ -6,7 +6,13 @@ export function ThemeToggle() {
   const { theme, colors, toggle } = useTheme();
 
   return (
-    <Pressable onPress={toggle} style={styles.button} hitSlop={8}>
+    <Pressable
+      onPress={toggle}
+      style={styles.button}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityLabel={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
       {theme === 'dark' ? <Moon color={colors.foreground} size={20} /> : <Sun color={colors.foreground} size={20} />}
     </Pressable>
   );
