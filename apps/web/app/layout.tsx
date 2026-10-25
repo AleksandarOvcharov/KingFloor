@@ -36,7 +36,6 @@ export default async function RootLayout({
     return (
         <html lang={locale} suppressHydrationWarning>
         <head>
-            <title>Hackathon Startup Template</title>
             <script dangerouslySetInnerHTML={{__html: themeScript}}/>
         </head>
         <body className={inter.className}>
