@@ -140,20 +140,6 @@ export default function SignInScreen() {
             <Text style={styles.oauthButtonText}>Google</Text>
           )}
         </Pressable>
-        <Pressable
-          style={styles.oauthButton}
-          onPress={() => handleOAuth('github')}
-          disabled={loading || !!oauthLoading}
-          accessibilityRole="button"
-          accessibilityLabel="Continue with GitHub"
-          accessibilityState={{ disabled: loading || !!oauthLoading, busy: oauthLoading === 'github' }}
-        >
-          {oauthLoading === 'github' ? (
-            <ActivityIndicator color={colors.foreground} size="small" />
-          ) : (
-            <Text style={styles.oauthButtonText}>GitHub</Text>
-          )}
-        </Pressable>
       </View>
     </KeyboardAvoidingView>
   );

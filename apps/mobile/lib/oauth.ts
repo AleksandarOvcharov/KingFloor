@@ -7,7 +7,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
-export type OAuthProvider = 'google' | 'github';
+export type OAuthProvider = 'google';
 
 function extractTokens(url: string): { error: string | null; access_token?: string; refresh_token?: string } {
   const { params, errorCode } = QueryParams.getQueryParams(url);

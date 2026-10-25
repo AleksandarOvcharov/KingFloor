@@ -134,16 +134,6 @@ export function useAuth() {
         return {error}
     }
 
-    const signInWithGitHub = async () => {
-        const {error} = await supabase.auth.signInWithOAuth({
-            provider: 'github',
-            options: {
-                redirectTo: getAuthCallbackUrl(),
-            },
-        })
-        return {error}
-    }
-
     const logout = async () => {
         syncAuthCookie(null)
         await supabase.auth.signOut()
@@ -175,5 +165,5 @@ export function useAuth() {
         return {error: null}
     }
 
-    return {user, loading, login, signup, signInWithGoogle, signInWithGitHub, logout, deleteAccount}
+    return {user, loading, login, signup, signInWithGoogle, logout, deleteAccount}
 }

@@ -280,34 +280,34 @@ function ResidentDashboard() {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link href="/building/fees">
-                    <Card className="hover:border-primary/50 transition-colors">
-                        <CardContent className="pt-6 space-y-1">
+                <Link href="/building/fees" className="block h-full">
+                    <Card className="h-full min-h-28 flex flex-col hover:border-primary/50 transition-colors">
+                        <CardContent className="pt-6 space-y-1 flex-1 flex flex-col justify-center">
                             <p className="text-2xl font-bold">{unpaidCount}</p>
                             <p className="text-xs text-muted-foreground">{t.building.statOutstandingFees}</p>
                         </CardContent>
                     </Card>
                 </Link>
-                <Link href="/building/issues">
-                    <Card className="hover:border-primary/50 transition-colors">
-                        <CardContent className="pt-6 space-y-1">
+                <Link href="/building/issues" className="block h-full">
+                    <Card className="h-full min-h-28 flex flex-col hover:border-primary/50 transition-colors">
+                        <CardContent className="pt-6 space-y-1 flex-1 flex flex-col justify-center">
                             <Wrench className="h-4 w-4 text-muted-foreground"/>
                             <p className="text-2xl font-bold">{openIssues}</p>
                             <p className="text-xs text-muted-foreground">{t.building.statOpenIssues}</p>
                         </CardContent>
                     </Card>
                 </Link>
-                <Link href="/building/polls">
-                    <Card className="hover:border-primary/50 transition-colors">
-                        <CardContent className="pt-6 space-y-1">
+                <Link href="/building/polls" className="block h-full">
+                    <Card className="h-full min-h-28 flex flex-col hover:border-primary/50 transition-colors">
+                        <CardContent className="pt-6 space-y-1 flex-1 flex flex-col justify-center">
                             <p className="text-2xl font-bold">{activePolls}</p>
                             <p className="text-xs text-muted-foreground">{t.building.statActivePolls}</p>
                         </CardContent>
                     </Card>
                 </Link>
-                <Link href="/building/announcements">
-                    <Card className="hover:border-primary/50 transition-colors">
-                        <CardContent className="pt-6 space-y-1">
+                <Link href="/building/announcements" className="block h-full">
+                    <Card className="h-full min-h-28 flex flex-col hover:border-primary/50 transition-colors">
+                        <CardContent className="pt-6 space-y-1 flex-1 flex flex-col justify-center">
                             <p className="text-2xl font-bold">{announcements.length}</p>
                             <p className="text-xs text-muted-foreground">{t.building.statAnnouncements}</p>
                         </CardContent>
