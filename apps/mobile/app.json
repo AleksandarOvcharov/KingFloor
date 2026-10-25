@@ -11,7 +11,13 @@
       "expo-router",
       "expo-secure-store",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "KingFloor uses Face ID to confirm your vote before it's cast."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true

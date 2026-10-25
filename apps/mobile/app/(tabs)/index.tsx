@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { Building2, CheckCircle2, Megaphone, Vote } from 'lucide-react-native';
 import { useSession } from '../../hooks/useSession';
 import { useBuilding } from '../../hooks/useBuilding';
@@ -253,8 +254,35 @@ function PollCard({
   onVote: (pollId: string, optionId: string) => Promise<{ success: boolean; error?: string }>;
 }) {
   const [voting, setVoting] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // A vote can't be taken back (one per unit), so it gets the same
+  // confirm-with-biometrics treatment as a destructive action elsewhere in
+  // the app — Face ID/Touch ID/fingerprint if the device has it enrolled,
+  // falling back to the device passcode automatically. Devices with no
+  // biometric hardware at all (or nothing enrolled) just vote directly —
+  // there's nothing to confirm with in that case, and blocking the vote
+  // entirely would be worse than not asking.
+  const confirmWithBiometrics = async (): Promise<boolean> => {
+    const [hasHardware, isEnrolled] = await Promise.all([
+      LocalAuthentication.hasHardwareAsync(),
+      LocalAuthentication.isEnrolledAsync(),
+    ]);
+    if (!hasHardware || !isEnrolled) return true;
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: t.building.confirmVotePrompt,
+      cancelLabel: t.common.cancel,
+    });
+    return result.success;
+  };
 
   const handleVote = async (optionId: string) => {
+    setAuthError(null);
+    const confirmed = await confirmWithBiometrics();
+    if (!confirmed) {
+      setAuthError(t.building.biometricAuthFailed);
+      return;
+    }
     setVoting(optionId);
     const res = await onVote(poll.id, optionId);
     setVoting(null);
@@ -271,6 +299,7 @@ function PollCard({
       </View>
       {poll.description ? <Text style={styles.subtitleLeft}>{poll.description}</Text> : null}
       <Text style={styles.subtitleLeft}>{tFormat(t.building.votesCount, { count: String(poll.total_votes ?? 0) })}</Text>
+      {authError ? <Text style={styles.errorText}>{authError}</Text> : null}
       <View style={styles.gapContent}>
         {poll.options.map((option) => {
           const isMine = poll.my_vote_option_id === option.id;

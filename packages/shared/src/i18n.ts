@@ -591,6 +591,8 @@ const strings = {
         addOption: {en: 'Add option', bg: 'Добави опция'},
         castVote: {en: 'Vote', bg: 'Гласувай'},
         changeVote: {en: 'Change vote', bg: 'Промени гласа'},
+        confirmVotePrompt: {en: 'Confirm your vote', bg: 'Потвърдете гласа си'},
+        biometricAuthFailed: {en: 'Authentication failed — vote not cast.', bg: 'Удостоверяването не бе успешно — гласът не е подаден.'},
         pollStatusOpen: {en: 'Open', bg: 'Отворено'},
         pollClosed: {en: 'Voting closed', bg: 'Гласуването е затворено'},
         closePoll: {en: 'Close voting', bg: 'Затвори гласуването'},
